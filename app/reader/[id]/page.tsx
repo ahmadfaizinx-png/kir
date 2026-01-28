@@ -99,15 +99,13 @@ export default function WorkDetailPage() {
     
     try {
       // Get user IP for tracking (simplified - in production use proper user identification)
-      const userIp = localStorage.getItem("user_ip") || `user_${Date.now()}`;
-      localStorage.setItem("user_ip", userIp);
-
+      
       // Check if already liked
       const { data: existingLike } = await supabase
         .from("likes")
         .select("*")
         .eq("work_id", work.id)
-        .eq("user_ip", userIp)
+       eq("work_id", work.id)
         .single();
 
       if (existingLike) {
@@ -116,7 +114,7 @@ export default function WorkDetailPage() {
           .from("likes")
           .delete()
           .eq("work_id", work.id)
-          .eq("user_ip", userIp);
+         
         
         await supabase
           .from("works")
@@ -126,7 +124,7 @@ export default function WorkDetailPage() {
         // Like
         await supabase
           .from("likes")
-          .insert({ work_id: work.id, user_ip });
+          .insert({ work_id: work.id, work.id });
         
         await supabase
           .from("works")

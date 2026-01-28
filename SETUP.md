@@ -58,9 +58,8 @@ CREATE TABLE IF NOT EXISTS comments (
 CREATE TABLE IF NOT EXISTS likes (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   work_id UUID REFERENCES works(id) ON DELETE CASCADE,
-  user_ip TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(work_id, user_ip)
+  UNIQUE(work_id)
 );
 
 -- Enable Row Level Security

@@ -95,16 +95,13 @@ export default function ReaderPage() {
       if (!work) return;
 
       // Get user IP for tracking
-      const userIp = localStorage.getItem("user_ip") || `user_${Date.now()}`;
-      localStorage.setItem("user_ip", userIp);
-
+      
       // Check if already liked
       const { data: existingLike } = await supabase
         .from("likes")
         .select("*")
         .eq("work_id", workId)
-        .eq("user_ip", userIp)
-        .single();
+           .single();
 
       if (existingLike) {
         // Unlike
@@ -112,7 +109,7 @@ export default function ReaderPage() {
           .from("likes")
           .delete()
           .eq("work_id", workId)
-          .eq("user_ip", userIp);
+         
         
         await supabase
           .from("works")
@@ -122,7 +119,7 @@ export default function ReaderPage() {
         // Like
         await supabase
           .from("likes")
-          .insert({ work_id: workId, user_ip });
+          .insert({ work_id: workId });
         
         await supabase
           .from("works")
