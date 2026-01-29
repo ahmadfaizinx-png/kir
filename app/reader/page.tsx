@@ -119,7 +119,7 @@ export default function ReaderPage() {
         // Like
         await supabase
           .from("likes")
-          .insert({ work_id: work.id });
+          .insert({ work_id: workId });
         
         await supabase
           .from("works")
