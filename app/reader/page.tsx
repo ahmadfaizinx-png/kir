@@ -12,11 +12,11 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import Footer from "@/components/Footer";
 
-type WorkCategory = 
-  | "eksperimen" 
-  | "fakta" 
-  | "kata-kata-motivasi" 
-  | "berita-terkini" 
+type WorkCategory =
+  | "eksperimen"
+  | "fakta"
+  | "kata-kata-motivasi"
+  | "berita-terkini"
   | "karya-kir-lainnya"
   | "info-kir"
   | "all";
@@ -38,8 +38,10 @@ interface Work {
 export default function ReaderPage() {
   const [works, setWorks] = useState<Work[]>([]);
   const [filteredWorks, setFilteredWorks] = useState<Work[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<WorkCategory>("all");
+  const [selectedCategory, setSelectedCategory] =
+    useState<WorkCategory>("all");
   const [loading, setLoading] = useState(true);
+
   const supabase = createClient();
 
   const categories = [
@@ -71,18 +73,11 @@ export default function ReaderPage() {
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Supabase error:", error);
-        // Show user-friendly error message
-        if (error.message.includes("Invalid API key") || error.message.includes("JWT")) {
-          console.error("Supabase configuration error. Please check your .env.local file.");
-        }
-        throw error;
-      }
+      if (error) throw error;
+
       setWorks(data || []);
-    } catch (error: any) {
-      console.error("Error loading works:", error);
-      // Set empty array on error to show appropriate message
+    } catch (err) {
+      console.error("Error load works:", err);
       setWorks([]);
     } finally {
       setLoading(false);
@@ -94,33 +89,29 @@ export default function ReaderPage() {
       const work = works.find(w => w.id === workId);
       if (!work) return;
 
-      // Get user IP for tracking
-      
-      // Check if already liked
       const { data: existingLike } = await supabase
         .from("likes")
-        .select("*")
+        .select("id")
         .eq("work_id", workId)
-           .single();
+        .single();
 
       if (existingLike) {
-        // Unlike
+        // UNLIKE
         await supabase
           .from("likes")
           .delete()
-          .eq("work_id", workId)
-         
-        
+          .eq("work_id", workId);
+
         await supabase
           .from("works")
           .update({ likes_count: work.likes_count - 1 })
           .eq("id", workId);
       } else {
-        // Like
+        // LIKE
         await supabase
           .from("likes")
           .insert({ work_id: workId });
-        
+
         await supabase
           .from("works")
           .update({ likes_count: work.likes_count + 1 })
@@ -128,12 +119,12 @@ export default function ReaderPage() {
       }
 
       loadWorks();
-    } catch (error) {
-      console.error("Error handling like:", error);
+    } catch (err) {
+      console.error("Like error:", err);
     }
   }
 
-  async function handleDownload(workId: string, fileUrl?: string) {
+  function handleDownload(fileUrl?: string) {
     if (fileUrl) {
       window.open(fileUrl, "_blank");
     }
@@ -148,25 +139,23 @@ export default function ReaderPage() {
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert("Link berhasil disalin!");
+      alert("Link berhasil disalin");
     }
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/">
-              <h1 className="text-2xl font-bold text-green-700">Web Karya KIR</h1>
-            </Link>
-            <Link href="/">
-              <Button variant="ghost" size="sm">
-                <Home className="h-4 w-4 mr-2" />
-                Beranda
-              </Button>
-            </Link>
-          </div>
+      <header className="bg-white border-b sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4 flex justify-between">
+          <Link href="/" className="text-2xl font-bold text-green-700">
+            Web Karya KIR
+          </Link>
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              <Home className="h-4 w-4 mr-2" />
+              Beranda
+            </Button>
+          </Link>
         </div>
       </header>
 
@@ -174,12 +163,14 @@ export default function ReaderPage() {
         <div className="mb-6">
           <h2 className="text-3xl font-bold mb-4">Karya KIR</h2>
           <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
+            {categories.map(cat => (
               <Button
                 key={cat.id}
-                variant={selectedCategory === cat.id ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedCategory(cat.id as WorkCategory)}
+                variant={selectedCategory === cat.id ? "default" : "outline"}
+                onClick={() =>
+                  setSelectedCategory(cat.id as WorkCategory)
+                }
               >
                 {cat.label}
               </Button>
@@ -188,84 +179,87 @@ export default function ReaderPage() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12">Memuat karya...</div>
+          <div className="text-center py-12">Memuat...</div>
         ) : filteredWorks.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-gray-500">
-              {works.length === 0 
-                ? "Belum ada karya yang diposting atau terjadi kesalahan saat memuat data."
-                : "Belum ada karya untuk kategori ini."}
+              Belum ada karya
             </CardContent>
           </Card>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredWorks.map((work) => (
+            {filteredWorks.map(work => (
               <Link key={work.id} href={`/reader/${work.id}`}>
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                <Card className="hover:shadow-lg cursor-pointer">
                   {work.image_url && (
-                    <div className="relative w-full h-48">
+                    <div className="relative h-48">
                       <Image
                         src={work.image_url}
                         alt={work.title}
                         fill
                         className="object-cover"
                         unoptimized
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
                       />
                     </div>
                   )}
+
                   <CardHeader>
-                    <div className="flex items-start justify-between gap-2">
-                      <Badge variant="secondary">{work.category}</Badge>
+                    <div className="flex justify-between">
+                      <Badge>{work.category}</Badge>
                       <span className="text-xs text-gray-500">
                         {format(new Date(work.created_at), "dd MMM yyyy", {
                           locale: id,
                         })}
                       </span>
                     </div>
-                    <CardTitle className="text-lg">{work.title}</CardTitle>
-                    <p className="text-sm text-gray-600">Oleh: {work.author_name}</p>
+                    <CardTitle>{work.title}</CardTitle>
+                    <p className="text-sm text-gray-600">
+                      Oleh: {work.author_name}
+                    </p>
                   </CardHeader>
+
                   <CardContent>
-                    <p className="text-sm text-gray-700 line-clamp-3 mb-4">
+                    <p className="line-clamp-3 text-sm mb-4">
                       {work.content}
                     </p>
-                    <div className="flex items-center gap-4">
+
+                    <div className="flex gap-3">
                       <Button
-                        variant="ghost"
                         size="sm"
-                        onClick={(e) => {
+                        variant="ghost"
+                        onClick={e => {
                           e.preventDefault();
                           handleLike(work.id);
                         }}
                       >
                         <Heart className="h-4 w-4 mr-1" />
-                        {work.likes_count || 0}
+                        {work.likes_count}
                       </Button>
-                      <Button variant="ghost" size="sm">
+
+                      <Button size="sm" variant="ghost">
                         <MessageCircle className="h-4 w-4 mr-1" />
-                        {work.comments_count || 0}
+                        {work.comments_count}
                       </Button>
+
                       <Button
-                        variant="ghost"
                         size="sm"
-                        onClick={(e) => {
+                        variant="ghost"
+                        onClick={e => {
                           e.preventDefault();
                           handleShare(work);
                         }}
                       >
                         <Share2 className="h-4 w-4 mr-1" />
-                        Bagikan
+                        Share
                       </Button>
+
                       {work.file_url && (
                         <Button
-                          variant="ghost"
                           size="sm"
-                          onClick={(e) => {
+                          variant="ghost"
+                          onClick={e => {
                             e.preventDefault();
-                            handleDownload(work.id, work.file_url);
+                            handleDownload(work.file_url);
                           }}
                         >
                           <Download className="h-4 w-4 mr-1" />
@@ -280,6 +274,7 @@ export default function ReaderPage() {
           </div>
         )}
       </div>
+
       <Footer />
     </div>
   );
