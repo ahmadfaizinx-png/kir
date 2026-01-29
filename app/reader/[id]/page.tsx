@@ -105,7 +105,7 @@ export default function WorkDetailPage() {
         .from("likes")
         .select("*")
         .eq("work_id", work.id)
-       eq("work_id", work.id)
+       .eq("work_id", work.id)
         .single();
 
       if (existingLike) {
@@ -124,7 +124,7 @@ export default function WorkDetailPage() {
         // Like
         await supabase
           .from("likes")
-          .insert({ work_id: work.id, work.id });
+          .insert({ work_id: work.id });
         
         await supabase
           .from("works")
