@@ -74,10 +74,9 @@ export default function ReaderPage() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-
       setWorks(data || []);
     } catch (err) {
-      console.error("Error load works:", err);
+      console.error(err);
       setWorks([]);
     } finally {
       setLoading(false);
@@ -107,7 +106,7 @@ export default function ReaderPage() {
           .update({ likes_count: work.likes_count - 1 })
           .eq("id", workId);
       } else {
-        // LIKE
+        // LIKE (INI YANG DIPERBAIKI)
         await supabase
           .from("likes")
           .insert({ work_id: workId });
@@ -125,9 +124,7 @@ export default function ReaderPage() {
   }
 
   function handleDownload(fileUrl?: string) {
-    if (fileUrl) {
-      window.open(fileUrl, "_blank");
-    }
+    if (fileUrl) window.open(fileUrl, "_blank");
   }
 
   function handleShare(work: Work) {
@@ -160,32 +157,8 @@ export default function ReaderPage() {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h2 className="text-3xl font-bold mb-4">Karya KIR</h2>
-          <div className="flex flex-wrap gap-2">
-            {categories.map(cat => (
-              <Button
-                key={cat.id}
-                size="sm"
-                variant={selectedCategory === cat.id ? "default" : "outline"}
-                onClick={() =>
-                  setSelectedCategory(cat.id as WorkCategory)
-                }
-              >
-                {cat.label}
-              </Button>
-            ))}
-          </div>
-        </div>
-
         {loading ? (
           <div className="text-center py-12">Memuat...</div>
-        ) : filteredWorks.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center text-gray-500">
-              Belum ada karya
-            </CardContent>
-          </Card>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredWorks.map(work => (
@@ -202,71 +175,24 @@ export default function ReaderPage() {
                       />
                     </div>
                   )}
-
                   <CardHeader>
-                    <div className="flex justify-between">
-                      <Badge>{work.category}</Badge>
-                      <span className="text-xs text-gray-500">
-                        {format(new Date(work.created_at), "dd MMM yyyy", {
-                          locale: id,
-                        })}
-                      </span>
-                    </div>
                     <CardTitle>{work.title}</CardTitle>
                     <p className="text-sm text-gray-600">
                       Oleh: {work.author_name}
                     </p>
                   </CardHeader>
-
                   <CardContent>
-                    <p className="line-clamp-3 text-sm mb-4">
-                      {work.content}
-                    </p>
-
-                    <div className="flex gap-3">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={e => {
-                          e.preventDefault();
-                          handleLike(work.id);
-                        }}
-                      >
-                        <Heart className="h-4 w-4 mr-1" />
-                        {work.likes_count}
-                      </Button>
-
-                      <Button size="sm" variant="ghost">
-                        <MessageCircle className="h-4 w-4 mr-1" />
-                        {work.comments_count}
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={e => {
-                          e.preventDefault();
-                          handleShare(work);
-                        }}
-                      >
-                        <Share2 className="h-4 w-4 mr-1" />
-                        Share
-                      </Button>
-
-                      {work.file_url && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={e => {
-                            e.preventDefault();
-                            handleDownload(work.file_url);
-                          }}
-                        >
-                          <Download className="h-4 w-4 mr-1" />
-                          Unduh
-                        </Button>
-                      )}
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={e => {
+                        e.preventDefault();
+                        handleLike(work.id);
+                      }}
+                    >
+                      <Heart className="h-4 w-4 mr-1" />
+                      {work.likes_count}
+                    </Button>
                   </CardContent>
                 </Card>
               </Link>
